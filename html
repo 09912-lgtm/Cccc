@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมลูกโป่งแตก (Pop the Balloons!)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0f7fa;
+            font-family: 'Tahoma', sans-serif;
+            text-align: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #006064;
+            z-index: 10;
+        }
+
+        #game-board {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 60px;
+            height: 75px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+        }
+
+        .balloon::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 26px;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 8px solid inherit;
+        }
+
+        #start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #00acc1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        #start-btn:hover {
+            background-color: #00838f;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        คะแนน: <span id="score">0</span> | เวลา: <span id="time">30</span> วิ
+    </div>
+
+    <button id="start-btn" onclick="startGame()">เริ่มเล่นเกม</button>
+
+    <div id="game-board"></div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let balloonInterval;
+        const colors = ['#ff5252', '#ff4081', '#e040fb', '#7c4dff', '#536def', '#40c4ff', '#69f0ae', '#ffd740'];
+
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const gameBoard = document.getElementById('game-board');
+        const startBtn = document.getElementById('start-btn');
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = timeLeft;
+            startBtn.style.display = 'none';
+            gameBoard.innerHTML = '';
+
+            gameInterval = setInterval(updateTime, 1000);
+            balloonInterval = setInterval(createBalloon, 600);
+        }
+
+        function updateTime() {
+            timeLeft--;
+            timeDisplay.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(balloonInterval);
+                alert('หมดเวลา! คะแนนที่คุณได้คือ: ' + score + ' คะแนน');
+                startBtn.style.display = 'block';
+            }
+        }
+
+        function createBalloon() {
+            const balloon = document.createElement('div');
+            balloon.classList.add('balloon');
+
+            // สุ่มสี
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            balloon.style.backgroundColor = randomColor;
+
+            // สุ่มตำแหน่ง X
+            const randomX = Math.random() * (window.innerWidth - 80);
+            balloon.style.left = randomX + 'px';
+            balloon.style.bottom = '-100px';
+
+            // สุ่มความเร็ว
+            const duration = Math.random() * 2 + 3; // 3 - 5 วินาที
+
+            gameBoard.appendChild(balloon);
+
+            // อนิเมชันลอยขึ้น
+            let bottomPos = -100;
+            const floatInterval = setInterval(() => {
+                bottomPos += 3;
+                balloon.style.bottom = bottomPos + 'px';
+
+                if (bottomPos > window.innerHeight) {
+                    clearInterval(floatInterval);
+                    balloon.remove();
+                }
+            }, 1000 / (duration * 60));
+
+            // คลิกจิ้มลูกโป่งแตก
+            balloon.addEventListener('mousedown', () => {
+                score += 10;
+                scoreDisplay.textContent = score;
+
+                // เอฟเฟกต์แตก
+                balloon.style.transform = 'scale(1.4)';
+                balloon.style.opacity = '0';
+
+                clearInterval(floatInterval);
+                setTimeout(() => {
+                    balloon.remove();
+                }, 100);
+            });
+        }
+    </script>
+</body>
+</html>
